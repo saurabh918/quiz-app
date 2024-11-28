@@ -10,6 +10,7 @@ function App() {
   const [qNumber,setQNumber] = useState(1)
   const [timeUp,setTimeUp] = useState(false)
   const [prize,setPrize] = useState("$ 0")
+  const [ansClicked,setAnsClicked] = useState(false)
 
   const gkQuestions = [
     {
@@ -199,6 +200,7 @@ function App() {
     setPlayerName(null)
     setTimeUp(false)
     setQNumber(1)
+    setAnsClicked(false)
   }
 
   useEffect(() => {
@@ -219,14 +221,14 @@ function App() {
           <>
             <div className="top">
               <div className="timer">
-                <Timer timeUp={timeUp} setTimeUp={setTimeUp} qNumber={qNumber} />
+                <Timer timeUp={timeUp} setTimeUp={setTimeUp}  qNumber={qNumber} ansClicked={ansClicked} setAnsClicked={setAnsClicked} />
               </div>
               <div className="playerName">
                 <h4>Player: {playerName}</h4>
               </div>
             </div>
             <div className="bottom">
-              <Quiz data={gkQuestions} setTimeUp={setTimeUp} qNumber={qNumber} setQNumber={setQNumber} totalQuestions={gkQuestions.length} />
+              <Quiz data={gkQuestions} setTimeUp={setTimeUp} qNumber={qNumber} setQNumber={setQNumber} totalQuestions={gkQuestions.length} setAnsClicked={setAnsClicked} />
             </div>
           </>
         ) }
