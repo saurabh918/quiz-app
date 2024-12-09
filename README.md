@@ -14,8 +14,7 @@ This project is a **React-based quiz application** inspired by the popular TV ga
 
 - **React**: For building the interactive user interface.
 - **State Management**: React hooks (e.g., `useState`, `useEffect`) and custom state logic to handle the quiz flow and game data.
-- **Styled Components**: For styling the components with a clean and modular approach.
-- **Sound Effects**: Integrated using specialized sound plugins like **howler.js** or custom audio logic.
+- **Sound Effects**: Integrated using specialized sound plugins like **use-sound** or custom audio logic.
 - **CSS Animations**: For visual transitions and effects to create a more engaging experience.
 
 ## Getting Started
