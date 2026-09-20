@@ -1,96 +1,73 @@
-import React, { useEffect, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import useSound from 'use-sound';
-import play from '../assets/play.mp3';
-import correct from '../assets/correct.mp3';
-import wrong from '../assets/wrong.mp3';
-import celebrate from '../assets/celebration.mp3';
+/* eslint-disable react/prop-types */
+import { GameStatus } from '../game/gameReducer'
 
-const Quiz = ({ data, setTimeUp, qNumber, setQNumber, totalQuestions, setAnsClicked }) => {
-  const [question, setQuestion] = useState(null);
-  const [selectedAns, setSelectedAns] = useState(null);
-  const [answerStates, setAnswerStates] = useState({});
+function getAnswerClassName(answer, status, selectedAnswerId) {
+  const isSelected = answer.id === selectedAnswerId
 
-  const [startPlay] = useSound(play);
-  const [correctAns] = useSound(correct);
-  const [wrongAns] = useSound(wrong);
-  const [celebrateSound] = useSound(celebrate);
+  if (status === GameStatus.LOCKED && isSelected) {
+    return 'answer active'
+  }
 
-  useEffect(() => {
-    startPlay();
-  }, [startPlay]);
+  if (status === GameStatus.REVEALING) {
+    if (answer.correct) {
+      return 'answer right'
+    }
 
-  useEffect(() => {
-    setQuestion(data[qNumber - 1]);
-  }, [data, qNumber]);
+    if (isSelected) {
+      return 'answer wrong'
+    }
+  }
 
-  const delayTime = (duration, cb) => {
-    setTimeout(() => {
-      cb();
-    }, duration);
-  };
+  return 'answer'
+}
 
-  const handleClick = (ans) => {
-    setSelectedAns(ans);
-    setAnsClicked(true);
-    
-    setAnswerStates((prev) => ({
-      ...prev,
-      [ans.text]: "answer active",
-    }));
-    
-    delayTime(3000, () => {
-      setAnswerStates((prev) => ({
-        ...prev,
-        [ans.text]: ans.correct ? "answer right" : "answer wrong",
-      }));
-    });
+function getAnswerFeedback(answer, status, selectedAnswerId) {
+  if (status !== GameStatus.REVEALING) {
+    return null
+  }
 
-    // Handle answer correctness after additional delay
-    delayTime(5000, () => {
-      if (ans.correct) {
-        if (qNumber === totalQuestions) {
-          delayTime(1000, () => {
-            setTimeUp(true);
-            celebrateSound();
-          });
-        } else {
-          correctAns();
-        }
+  if (answer.correct) {
+    return 'Correct'
+  }
 
-        delayTime(1000, () => {
-          setQNumber((prev) => prev + 1);
-          setSelectedAns(null);
-        });
-      } else {
-        delayTime(1000, () => {
-          wrongAns();
-          setTimeUp(true);
-        });
-      }
-    });
-  };
+  if (answer.id === selectedAnswerId) {
+    return 'Incorrect'
+  }
+
+  return null
+}
+
+function Quiz({ question, status, selectedAnswerId, onSelectAnswer, categoryName }) {
+  const isSelectionEnabled = status === GameStatus.PLAYING
 
   return (
     <div className="quiz">
-      <div className="question">{question?.question}</div>
+      {categoryName ? <p className="quizCategory">{categoryName}</p> : null}
+      <h1 className="question">{question.question}</h1>
       <div className="answers">
-        {question?.answers.map((item) => {
-          const buttonClass = answerStates[item.text] || 'answer'; // Default to 'answer' if not set
+        {question.answers.map((answer) => {
+          const feedback = getAnswerFeedback(answer, status, selectedAnswerId)
+
           return (
             <button
-              key={uuidv4()}
-              disabled={selectedAns}
-              className={selectedAns === item ? "answer active" : buttonClass}
-              onClick={() => handleClick(item)}
+              key={answer.id}
+              type="button"
+              disabled={!isSelectionEnabled}
+              className={getAnswerClassName(answer, status, selectedAnswerId)}
+              onClick={() => onSelectAnswer(answer.id)}
             >
-              {item.text}
+              <span className="answerText">{answer.text}</span>
+              {feedback ? (
+                <span className="answerFeedback" aria-hidden="true">
+                  {feedback}
+                </span>
+              ) : null}
             </button>
-          );
+          )
         })}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Quiz;
+export default Quiz

@@ -1,259 +1,282 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import './App.css'
 import Quiz from './components/Quiz'
 import Timer from './components/Timer'
 import Start from './components/Start'
+import ResultScreen from './components/ResultScreen'
+import History from './components/History'
+import SoundToggle from './components/SoundToggle'
+import PrizeLadder, { CurrentPrizeBar } from './components/PrizeLadder'
+import { getPlayableCategory } from './data/questionBank'
+import { prizes } from './data/prizes'
+import {
+  ActionType,
+  GameStatus,
+  gameReducer,
+  getActivePrizeId,
+  getCurrentQuestion,
+  getResultPrize,
+  initialGameState,
+  isActiveGame,
+  isGameOver,
+} from './game/gameReducer'
+import { formatPrizeAmount } from './data/formatPrize'
+import { createHistoryId, saveGameHistory } from './history/gameHistory'
+import { useGameRuntime } from './hooks/useGameRuntime'
+import { useSoundPreference } from './hooks/useSoundPreference'
 
-function App() {
+function getTimerLabel(secondsLeft) {
+  const unit = secondsLeft === 1 ? 'second' : 'seconds'
+  return `${secondsLeft} ${unit} remaining`
+}
 
-  const [playerName,setPlayerName] = useState(null)
-  const [qNumber,setQNumber] = useState(1)
-  const [timeUp,setTimeUp] = useState(false)
-  const [prize,setPrize] = useState("$ 0")
-  const [ansClicked,setAnsClicked] = useState(false)
-
-  const gkQuestions = [
-    {
-      id: 1,
-      question: "What is the largest country in the world by land area?",
-      answers: [
-        { text: "Russia", correct: true },
-        { text: "China", correct: false },
-        { text: "United States", correct: false },
-        { text: "Canada", correct: false   
-   }
-      ]
-    },
-    {
-      id: 2,
-      question: "Who painted the Mona Lisa?",
-      answers: [
-        { text: "Leonardo da Vinci", correct: true },
-        { text: "Pablo Picasso", correct: false },
-        { text: "Vincent van Gogh", correct: false },
-        { text: "Michelangelo", correct: false   
-   }
-      ]
-    },
-    {
-      id: 3,
-      question: "What is the capital of Australia?",
-      answers: [
-        { text: "Sydney", correct: false },
-        { text: "Melbourne", correct: false },
-        { text: "Canberra", correct: true },
-        { text: "Brisbane", correct: false }
-      ]
-    },
-    {
-      id:   
-   4,
-      question: "Who wrote the play \"Romeo and Juliet\"?",
-      answers: [
-        { text: "William Shakespeare", correct: true },
-        { text: "Jane Austen", correct: false },
-        { text: "Charles Dickens", correct: false },
-        { text: "Mark Twain", correct: false   
-   }
-      ]
-    },
-    {
-      id: 5,
-      question: "Which planet is known as the Red Planet?",
-      answers: [
-        { text: "Mars", correct: true },
-        { text: "Venus", correct: false },
-        { text: "Jupiter", correct: false },
-        { text: "Saturn", correct: false   
-   }
-      ]
-    },
-    {
-      id: 6,
-      question: "What is the largest ocean in the world?",
-      answers: [
-        { text: "Pacific Ocean", correct: true },
-        { text: "Atlantic Ocean", correct: false },
-        { text: "Indian Ocean", correct: false },
-        { text: "Arctic Ocean", correct: false   
-   }
-      ]
-    },
-    {
-      id:   
-   7,
-      question: "Who invented the light bulb?",
-      answers: [
-        { text: "Thomas Edison", correct: true },
-        { text: "Nikola Tesla", correct: false },
-        { text: "Benjamin Franklin", correct: false },
-        { text: "Alexander Graham Bell", correct: false   
-   }
-      ]
-    },
-    {
-      id: 8,
-      question: "What is the chemical symbol for gold?",
-      answers: [
-        { text: "Au", correct: true },
-        { text: "Ag", correct: false },
-        { text:   
-   "Fe", correct: false },
-        { text: "Cu", correct: false }
-      ]
-    },
-    {
-      id: 9,
-      question: "What is the tallest mountain in the world?",
-      answers: [
-        { text: "Mount Everest", correct: true },
-        { text: "K2", correct: false },
-        { text: "Mount Kilimanjaro", correct: false   
-   },
-        { text: "Denali", correct: false }
-      ]
-    },
-    {
-      id: 10,
-      question: "Who painted the Sistine Chapel ceiling?",
-      answers: [
-        { text: "Michelangelo", correct: true },
-        { text: "Leonardo da Vinci", correct: false },
-        { text:   
-   "Raphael", correct: false },
-        { text: "Rembrandt", correct: false }
-      ]
-    },
-    {
-      id: 11,
-      question: "What is the largest country in Africa?",
-      answers: [
-        { text: "Algeria", correct: false },
-        { text: "Democratic Republic of Congo", correct: true },
-        { text: "Nigeria", correct: false },
-        { text: "South Africa", correct: false }
-      ]
-    },
-    {
-      id: 12,
-      question: "Who wrote the Harry Potter series?",
-      answers: [
-        { text: "J.K. Rowling", correct: true },
-        { text: "Stephen King", correct: false },
-        { text: "Dan Brown", correct: false },
-        { text: "Terry Pratchett", correct: false }
-      ]
-    },
-    {
-      id: 13,
-      question: "What is the official language of India?",
-      answers: [
-        { text: "English", correct: false },
-        { text: "Hindi", correct: true },
-        { text: "Tamil", correct: false },
-        { text: "Bengali", correct: false }
-      ]
-    },
-    {
-      id: 14,
-      question: "What is the capital of the United States?",
-      answers: [
-        { text: "New York City", correct: false },
-        { text: "Los Angeles", correct: false },
-        { text: "Washington, D.C.", correct: true },
-        { text: "Chicago", correct: false }
-      ]
-    },
-    {
-      id: 15,
-      question: "What is the largest mammal in the world?",
-      answers: [
-        { text: "Blue Whale", correct: true },
-        { text: "African Elephant", correct: false },
-        { text: "Giraffe", correct: false },
-        { text: "Hippopotamus", correct: false }
-      ]
-    }
-  ];
-
-  const prizeMilestone = useMemo(() => 
-     [
-      {id: 1, amount: '$ 100'},
-      {id: 2, amount: '$ 200'},
-      {id: 3, amount: '$ 300'},
-      {id: 4, amount: '$ 500'},
-      {id: 5, amount: '$ 1000'},
-      {id: 6, amount: '$ 2000'},
-      {id: 7, amount: '$ 4000'},
-      {id: 8, amount: '$ 8000'},
-      {id: 9, amount: '$ 16000'},
-      {id: 10, amount: '$ 32000'},
-      {id: 11, amount: '$ 64000'},
-      {id: 12, amount: '$ 125000'},
-      {id: 13, amount: '$ 250000'},
-      {id: 14, amount: '$ 500000'},
-      {id: 15, amount: '$ 1000000'},
-    ].reverse()
-  , [])
-
-  const handleEndGame = () => {
-    setPlayerName(null)
-    setTimeUp(false)
-    setQNumber(1)
-    setAnsClicked(false)
+function getTimerClassName(secondsLeft) {
+  if (secondsLeft <= 5) {
+    return 'timer isCritical'
   }
 
+  if (secondsLeft <= 10) {
+    return 'timer isUrgent'
+  }
+
+  return 'timer'
+}
+
+function getGameStatusAnnouncement(state, question) {
+  if (state.status === GameStatus.LOCKED) {
+    return 'Answer locked in.'
+  }
+
+  if (state.status === GameStatus.REVEALING) {
+    const selectedAnswer = question?.answers.find((answer) => answer.id === state.selectedAnswerId)
+    const correctAnswer = question?.answers.find((answer) => answer.correct)
+
+    if (selectedAnswer?.correct) {
+      return 'Correct.'
+    }
+
+    return correctAnswer
+      ? `Incorrect. The correct answer is ${correctAnswer.text}.`
+      : 'Incorrect.'
+  }
+
+  if (state.status === GameStatus.TIMEOUT) {
+    return 'Time expired.'
+  }
+
+  if (state.status === GameStatus.PLAYING && state.questionIndex > 0) {
+    return 'Next question.'
+  }
+
+  return ''
+}
+
+const APP_TITLE = 'Prize Ladder Quiz'
+
+function getDocumentTitle(status, questionIndex) {
+  if (status === GameStatus.IDLE) {
+    return APP_TITLE
+  }
+
+  if (status === GameStatus.WON) {
+    return `Completed · ${APP_TITLE}`
+  }
+
+  if (status === GameStatus.LOST) {
+    return `Incorrect answer · ${APP_TITLE}`
+  }
+
+  if (status === GameStatus.TIMEOUT) {
+    return `Time is up · ${APP_TITLE}`
+  }
+
+  return `Question ${questionIndex + 1} · ${APP_TITLE}`
+}
+
+function App() {
+  const [state, dispatch] = useReducer(gameReducer, initialGameState)
+  const [showHistory, setShowHistory] = useState(false)
+  const [activeQuestions, setActiveQuestions] = useState([])
+  const [activeCategory, setActiveCategory] = useState(null)
+  const gameRunIdRef = useRef(null)
+  const savedRunIdRef = useRef(null)
+  const { muted, toggleMuted } = useSoundPreference()
+  const currentQuestion = getCurrentQuestion(state, activeQuestions)
+  const resultPrize = getResultPrize(state, prizes)
+  const activePrizeId = getActivePrizeId(state)
+  const currentPrizeAmount = prizes.find((prize) => prize.id === activePrizeId)?.amount ?? '$ 0'
+  const topPrizeId = prizes[prizes.length - 1]?.id
+  const prizeLadder = useMemo(() => [...prizes].reverse(), [])
+  const statusAnnouncement = getGameStatusAnnouncement(state, currentQuestion)
+  const totalQuestions = activeQuestions.length
+  const categoryName = activeCategory?.name
+
   useEffect(() => {
-    qNumber > 1 && setPrize(prizeMilestone.find((item) => item.id === qNumber - 1).amount)
-  }, [prizeMilestone,qNumber])
+    if (state.status === GameStatus.IDLE && showHistory) {
+      document.title = `History · ${APP_TITLE}`
+      return
+    }
+
+    document.title = getDocumentTitle(state.status, state.questionIndex)
+  }, [state.status, state.questionIndex, showHistory])
+
+  useEffect(() => {
+    if (!isGameOver(state.status)) {
+      return
+    }
+
+    const runId = gameRunIdRef.current
+    if (!runId || savedRunIdRef.current === runId) {
+      return
+    }
+
+    savedRunIdRef.current = runId
+    saveGameHistory({
+      id: runId,
+      playerName: state.playerName || 'Player',
+      status: state.status,
+      questionIndex: state.questionIndex,
+      totalQuestions,
+      securedPrize: formatPrizeAmount(resultPrize),
+      completedAt: new Date().toISOString(),
+      ...(activeCategory
+        ? {
+            categoryId: activeCategory.id,
+            categoryName: activeCategory.name,
+          }
+        : {}),
+    })
+  }, [state.status, state.questionIndex, state.playerName, resultPrize, totalQuestions, activeCategory])
+
+  useGameRuntime({
+    status: state.status,
+    question: currentQuestion,
+    questionIndex: state.questionIndex,
+    selectedAnswerId: state.selectedAnswerId,
+    totalQuestions,
+    dispatch,
+    muted,
+  })
+
+  const handleStartGame = (playerName, categoryId) => {
+    const playable = getPlayableCategory(categoryId)
+    if (!playable.ok) {
+      return
+    }
+
+    setShowHistory(false)
+    setActiveQuestions(playable.questions)
+    setActiveCategory(playable.category)
+    gameRunIdRef.current = createHistoryId()
+    savedRunIdRef.current = null
+    dispatch({
+      type: ActionType.START_GAME,
+      payload: { playerName },
+    })
+  }
+
+  const handleSelectAnswer = (answerId) => {
+    dispatch({
+      type: ActionType.SELECT_ANSWER,
+      payload: { answerId },
+    })
+  }
+
+  const handleRestartGame = () => {
+    setShowHistory(false)
+    setActiveQuestions([])
+    setActiveCategory(null)
+    dispatch({ type: ActionType.RESTART_GAME })
+  }
+
+  const handleOpenHistory = () => {
+    setShowHistory(true)
+  }
+
+  const handleCloseHistory = () => {
+    setShowHistory(false)
+  }
 
   return (
-    <div className="app">
-      {playerName ? (
+    <div
+      className={
+        state.status === GameStatus.IDLE ? 'app isIdle' : isGameOver(state.status) ? 'app isOver' : 'app'
+      }
+    >
+      <p className="visuallyHidden" aria-live="polite" aria-atomic="true">
+        {statusAnnouncement}
+      </p>
+      <SoundToggle muted={muted} onToggle={toggleMuted} />
+      {state.status === GameStatus.IDLE ? (
+        showHistory ? (
+          <History onBack={handleCloseHistory} />
+        ) : (
+          <Start onStart={handleStartGame} onOpenHistory={handleOpenHistory} />
+        )
+      ) : (
         <>
           <div className="main">
-        {timeUp ? (
-          <div className='resultText'>
-            <h1>You won: {prize}</h1>
-            <button className='endButton' onClick={handleEndGame}>End</button>
+            {isGameOver(state.status) ? (
+              <ResultScreen
+                status={state.status}
+                prize={resultPrize}
+                playerName={state.playerName}
+                questionIndex={state.questionIndex}
+                totalQuestions={totalQuestions}
+                categoryName={categoryName}
+                onRestart={handleRestartGame}
+              />
+            ) : (
+              <>
+                <div className="top">
+                  <div
+                    className={getTimerClassName(state.secondsLeft)}
+                    role="timer"
+                    aria-label={getTimerLabel(state.secondsLeft)}
+                  >
+                    <span className="timerValue">
+                      <Timer secondsLeft={state.secondsLeft} />
+                    </span>
+                    {state.secondsLeft <= 10 ? (
+                      <span className="timerUrgency" aria-hidden="true">
+                        {state.secondsLeft <= 5 ? 'Hurry' : 'Low'}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="playerName">
+                    <h4>Player: {state.playerName}</h4>
+                  </div>
+                </div>
+                {isActiveGame(state.status) && (
+                  <CurrentPrizeBar
+                    activePrizeId={activePrizeId}
+                    totalPrizes={prizes.length}
+                    amount={currentPrizeAmount}
+                  />
+                )}
+                <div className="bottom">
+                  {currentQuestion && (
+                    <Quiz
+                      question={currentQuestion}
+                      status={state.status}
+                      selectedAnswerId={state.selectedAnswerId}
+                      onSelectAnswer={handleSelectAnswer}
+                      categoryName={categoryName}
+                    />
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        ) : (
-          <>
-            <div className="top">
-              <div className="timer">
-                <Timer timeUp={timeUp} setTimeUp={setTimeUp}  qNumber={qNumber} ansClicked={ansClicked} setAnsClicked={setAnsClicked} />
-              </div>
-              <div className="playerName">
-                <h4>Player: {playerName}</h4>
-              </div>
-            </div>
-            <div className="bottom">
-              <Quiz data={gkQuestions} setTimeUp={setTimeUp} qNumber={qNumber} setQNumber={setQNumber} totalQuestions={gkQuestions.length} setAnsClicked={setAnsClicked} />
-            </div>
-          </>
-        ) }
-      </div>
-      {
-        !timeUp && (
-          <div className="milestone">
-        <ul className="prizeList">
-          {
-            prizeMilestone.map((item) => {
-              return (
-                <li key={item.id} className={qNumber === item.id ? 'prizeListItem active' : 'prizeListItem'}>
-                  <span className='prizeListItemNumber'>{item.id}</span>
-                  <span className='prizeListItemAmount'>{item.amount}</span>
-                </li>
-              )
-            })
-          }
-        </ul>
-      </div>
-        )
-      }
+          {isActiveGame(state.status) && (
+            <PrizeLadder
+              prizes={prizeLadder}
+              activePrizeId={activePrizeId}
+              topPrizeId={topPrizeId}
+            />
+          )}
         </>
-      ) : <Start setPlayerName={setPlayerName} />}
-      
+      )}
     </div>
   )
 }
