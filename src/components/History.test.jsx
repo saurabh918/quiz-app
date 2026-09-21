@@ -59,7 +59,7 @@ describe('History', () => {
     expect(screen.getByText('Games played').closest('li')).toHaveTextContent('2')
     expect(screen.getByText('Wins').closest('li')).toHaveTextContent('1')
     expect(screen.getByText('Highest prize').closest('li')).toHaveTextContent('$1,000,000')
-    expect(screen.getAllByText('General Knowledge')).toHaveLength(2)
+    expect(screen.getAllByText('General Knowledge · Medium')).toHaveLength(2)
   })
 
   it('shows a saved category name when present', () => {
@@ -75,8 +75,8 @@ describe('History', () => {
     )
     render(<History onBack={() => {}} />)
 
-    expect(screen.getByText('Science')).toBeInTheDocument()
-    expect(screen.queryByText('General Knowledge')).not.toBeInTheDocument()
+    expect(screen.getByText('Science · Medium')).toBeInTheDocument()
+    expect(screen.queryByText('General Knowledge · Medium')).not.toBeInTheDocument()
   })
 
   it('requires confirmation before clearing history', async () => {

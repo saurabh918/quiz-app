@@ -21,7 +21,7 @@ describe('Start form', () => {
     await user.click(screen.getByRole('button', { name: 'Start' }))
 
     expect(onStart).toHaveBeenCalledTimes(1)
-    expect(onStart).toHaveBeenCalledWith('Ada', 'generalKnowledge')
+    expect(onStart).toHaveBeenCalledWith('Ada', 'generalKnowledge', 'medium', false)
     expect(screen.queryByText('Enter your name to start.')).not.toBeInTheDocument()
   })
 
@@ -57,7 +57,7 @@ describe('Start form', () => {
     await user.type(screen.getByLabelText('Name'), 'Ada{Enter}')
 
     expect(onStart).toHaveBeenCalledTimes(1)
-    expect(onStart).toHaveBeenCalledWith('Ada', 'generalKnowledge')
+    expect(onStart).toHaveBeenCalledWith('Ada', 'generalKnowledge', 'medium', false)
   })
 
   it('allows the start button to be reached and activated from the keyboard', async () => {
@@ -73,7 +73,7 @@ describe('Start form', () => {
     await user.keyboard('{Enter}')
 
     expect(onStart).toHaveBeenCalledTimes(1)
-    expect(onStart).toHaveBeenCalledWith('Ada', 'generalKnowledge')
+    expect(onStart).toHaveBeenCalledWith('Ada', 'generalKnowledge', 'medium', false)
   })
 
   it('selects General Knowledge by default and can submit another category', async () => {
@@ -93,6 +93,31 @@ describe('Start form', () => {
     await user.type(screen.getByLabelText('Name'), 'Ada')
     await user.click(screen.getByRole('button', { name: 'Start' }))
 
-    expect(onStart).toHaveBeenCalledWith('Ada', 'science')
+    expect(onStart).toHaveBeenCalledWith('Ada', 'science', 'medium', false)
+  })
+
+  it('selects Medium by default and disables unavailable difficulties', () => {
+    render(<Start onStart={() => {}} />)
+
+    expect(screen.getByRole('radio', { name: /Medium/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /Easy/i })).toBeDisabled()
+    expect(screen.getByRole('radio', { name: /Hard/i })).toBeDisabled()
+    expect(screen.getAllByText('Coming soon')).toHaveLength(2)
+  })
+
+  it('selects Normal Mode by default and can submit Learning Mode', async () => {
+    const user = userEvent.setup()
+    const onStart = vi.fn()
+
+    render(<Start onStart={onStart} />)
+
+    expect(screen.getByRole('radio', { name: /Normal/i })).toBeChecked()
+    expect(screen.getByRole('radio', { name: /Learning Mode/i })).not.toBeChecked()
+
+    await user.click(screen.getByRole('radio', { name: /Learning Mode/i }))
+    await user.type(screen.getByLabelText('Name'), 'Ada')
+    await user.click(screen.getByRole('button', { name: 'Start' }))
+
+    expect(onStart).toHaveBeenCalledWith('Ada', 'generalKnowledge', 'medium', true)
   })
 })

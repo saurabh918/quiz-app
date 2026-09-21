@@ -4,6 +4,11 @@ import { formatPrizeAmount, isZeroPrizeAmount } from '../data/formatPrize'
 import { GameStatus } from '../game/gameReducer'
 
 const RESULT_HEADING_ID = 'result-heading'
+const TIMEOUT_EXPLANATION_HEADING_ID = 'result-timeout-explanation-heading'
+
+function getCorrectAnswer(question) {
+  return question?.answers.find((answer) => answer.correct) ?? null
+}
 
 function getProgressSummary(status, questionIndex, totalQuestions) {
   if (typeof questionIndex !== 'number' || typeof totalQuestions !== 'number' || totalQuestions < 1) {
@@ -57,12 +62,22 @@ function ResultScreen({
   questionIndex,
   totalQuestions,
   categoryName,
+  learningMode = false,
+  timedOutQuestion = null,
   onRestart,
 }) {
   const headingRef = useRef(null)
   const content = getResultContent(status, prize, playerName)
   const progress = getProgressSummary(status, questionIndex, totalQuestions)
   const prizeDisplay = formatPrizeAmount(prize)
+  const timeoutExplanation =
+    learningMode &&
+    status === GameStatus.TIMEOUT &&
+    typeof timedOutQuestion?.explanation === 'string' &&
+    timedOutQuestion.explanation.trim()
+      ? timedOutQuestion.explanation.trim()
+      : null
+  const timeoutCorrectAnswer = timeoutExplanation ? getCorrectAnswer(timedOutQuestion) : null
 
   useEffect(() => {
     headingRef.current?.focus()
@@ -76,6 +91,19 @@ function ResultScreen({
       </h1>
       {categoryName ? <p className="resultCategory">{categoryName}</p> : null}
       <p className="resultMessage">{content.message}</p>
+      {timeoutExplanation ? (
+        <section className="resultExplanationPanel" aria-labelledby={TIMEOUT_EXPLANATION_HEADING_ID}>
+          <h2 id={TIMEOUT_EXPLANATION_HEADING_ID} className="resultExplanationHeading">
+            Explanation
+          </h2>
+          {timeoutCorrectAnswer ? (
+            <p className="resultCorrectAnswer">
+              Correct answer: <strong>{timeoutCorrectAnswer.text}</strong>
+            </p>
+          ) : null}
+          <p className="resultExplanation">{timeoutExplanation}</p>
+        </section>
+      ) : null}
       <div className="resultPrizeBlock">
         <p className="resultPrizeCaption">{content.prizeCaption}</p>
         <p className="resultPrize">{prizeDisplay}</p>

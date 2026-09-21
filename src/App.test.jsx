@@ -37,7 +37,10 @@ function renderApp() {
   return render(<App />)
 }
 
-async function startGame(user, playerName = 'Ada') {
+async function startGame(user, playerName = 'Ada', { learningMode = false } = {}) {
+  if (learningMode) {
+    await user.click(screen.getByRole('radio', { name: /Learning Mode/i }))
+  }
   await user.type(screen.getByLabelText('Name'), playerName)
   await user.click(screen.getByRole('button', { name: 'Start' }))
 }
@@ -311,6 +314,8 @@ describe('App integration', () => {
         securedPrize: '$0',
         categoryId: 'generalKnowledge',
         categoryName: 'General Knowledge',
+        difficultyId: 'medium',
+        difficultyName: 'Medium',
       })
 
       await user.click(screen.getByRole('button', { name: 'Play again' }))
@@ -348,7 +353,7 @@ describe('App integration', () => {
       await user.click(screen.getByRole('radio', { name: /Science/i }))
       await startGame(user, 'Ada')
 
-      expect(screen.getByText('Science')).toBeInTheDocument()
+      expect(screen.getByText('Science · Medium')).toBeInTheDocument()
       const scienceQuestion = findDisplayedQuestion(scienceQuestions)
       expect(scienceQuestion).not.toBeNull()
       expect(findDisplayedQuestion(questions)).toBeNull()
@@ -358,15 +363,56 @@ describe('App integration', () => {
       advanceThroughAnswerReveal()
 
       expect(screen.getByRole('heading', { name: 'Incorrect answer' })).toBeInTheDocument()
-      expect(screen.getByText('Science')).toBeInTheDocument()
+      expect(screen.getByText('Science · Medium')).toBeInTheDocument()
       expect(getGameHistory()[0]).toMatchObject({
         categoryId: 'science',
         categoryName: 'Science',
+        difficultyId: 'medium',
+        difficultyName: 'Medium',
       })
 
       await user.click(screen.getByRole('button', { name: 'Play again' }))
       await user.click(screen.getByRole('button', { name: 'History' }))
-      expect(screen.getByText('Science')).toBeInTheDocument()
+      expect(screen.getByText('Science · Medium')).toBeInTheDocument()
+    })
+  })
+
+  describe('learning mode', () => {
+    it('ends on an incorrect answer after Continue without advancing to the next question', async () => {
+      const user = setupUser()
+      renderApp()
+      await startGame(user, 'Ada', { learningMode: true })
+
+      const currentQuestion = findDisplayedQuestion(questions)
+      const { wrong } = getDisplayedAnswers(currentQuestion)
+      await user.click(screen.getByRole('button', { name: wrong.text }))
+      advanceMs(LOCK_DURATION_MS)
+
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+      expect(screen.getByRole('heading', { name: 'Incorrect answer' })).toBeInTheDocument()
+      expect(screen.queryByText(currentQuestion.question)).not.toBeInTheDocument()
+    })
+
+    it('does not dispatch duplicate transitions when Continue is clicked twice', async () => {
+      const user = setupUser()
+      renderApp()
+      await startGame(user, 'Ada', { learningMode: true })
+
+      const currentQuestion = findDisplayedQuestion(questions)
+      const { correct } = getDisplayedAnswers(currentQuestion)
+      await user.click(screen.getByRole('button', { name: correct.text }))
+      advanceMs(LOCK_DURATION_MS)
+
+      const continueButton = screen.getByRole('button', { name: 'Continue' })
+      await user.click(continueButton)
+      await user.click(continueButton)
+
+      expect(screen.queryByText(currentQuestion.question)).not.toBeInTheDocument()
+      const nextQuestion = findDisplayedQuestion(questions)
+      expect(nextQuestion).not.toBeNull()
+      expect(nextQuestion.id).not.toBe(currentQuestion.id)
     })
   })
 })

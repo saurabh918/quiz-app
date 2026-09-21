@@ -571,6 +571,29 @@ body,
   background: radial-gradient(circle, var(--color-gold) 42%, transparent 46%);
 }
 
+.categoryOption.isUnavailable {
+  cursor: not-allowed;
+  opacity: 0.72;
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(14, 1, 32, 0.35);
+}
+
+.categoryOption.isUnavailable .categoryOptionMarker {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: transparent;
+}
+
+.categoryComingSoonMark {
+  padding: 1px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
 .categoryOptionBody {
   display: flex;
   min-width: 0;
@@ -622,6 +645,68 @@ body,
   width: calc(100% - 32px);
   max-width: 900px;
   text-align: center;
+}
+
+.quizLearningPanel {
+  width: calc(100% - 32px);
+  max-width: 900px;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-left: 3px solid var(--color-gold);
+  border-radius: var(--radius-small);
+  background: rgba(14, 1, 32, 0.55);
+  overflow-wrap: anywhere;
+}
+
+.quizExplanationHeading,
+.resultExplanationHeading {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.quizCorrectAnswer,
+.resultCorrectAnswer {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.quizExplanation,
+.resultExplanation {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--color-muted);
+  max-height: 8.5rem;
+  overflow-y: auto;
+}
+
+.quizContinueBtn {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--color-gold);
+  border-radius: var(--radius-control);
+  background: rgba(255, 213, 74, 0.12);
+  color: var(--color-gold);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.resultExplanationPanel {
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-left: 3px solid var(--color-gold);
+  border-radius: var(--radius-small);
+  background: rgba(14, 1, 32, 0.35);
+  overflow-wrap: anywhere;
 }
 
 .startTitle {
@@ -977,6 +1062,7 @@ body,
 .soundToggle:focus-visible,
 .startBox:focus-visible,
 .startBtn:focus-visible,
+.quizContinueBtn:focus-visible,
 .categoryOption:focus-within,
 .answer:focus-visible,
 .endButton:focus-visible,

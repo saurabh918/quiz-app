@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import useSound from 'use-sound'
 import play from '../assets/play.mp3'
 import correct from '../assets/correct.mp3'
@@ -17,6 +17,7 @@ export function useGameRuntime({
   totalQuestions,
   dispatch,
   muted,
+  learningMode = false,
 }) {
   const [startPlay, startControls] = useSound(play)
   const [correctAns, correctControls] = useSound(correct)
@@ -61,6 +62,31 @@ export function useGameRuntime({
       celebrateControls.stop?.()
     },
   }
+
+  const continueAfterReveal = useCallback(() => {
+    const selectedAnswer = question?.answers.find((answer) => answer.id === selectedAnswerId)
+    const isCorrect = Boolean(selectedAnswer?.correct)
+    const isLastQuestion = questionIndex >= totalQuestions - 1
+    const sounds = soundsRef.current
+
+    if (!isCorrect) {
+      sounds.wrongAns()
+      dispatch({ type: ActionType.ANSWER_WRONG })
+      return
+    }
+
+    if (isLastQuestion) {
+      sounds.celebrateSound()
+      dispatch({ type: ActionType.COMPLETE_GAME })
+      return
+    }
+
+    sounds.correctAns()
+    dispatch({
+      type: ActionType.NEXT_QUESTION,
+      payload: { totalQuestions },
+    })
+  }, [dispatch, question, questionIndex, selectedAnswerId, totalQuestions])
 
   useEffect(() => {
     if (muted) {
@@ -110,37 +136,18 @@ export function useGameRuntime({
   }, [status, dispatch])
 
   useEffect(() => {
-    if (status !== GameStatus.REVEALING) {
+    if (status !== GameStatus.REVEALING || learningMode) {
       return undefined
     }
 
     const timeoutId = window.setTimeout(() => {
-      const selectedAnswer = question?.answers.find((answer) => answer.id === selectedAnswerId)
-      const isCorrect = Boolean(selectedAnswer?.correct)
-      const isLastQuestion = questionIndex >= totalQuestions - 1
-      const sounds = soundsRef.current
-
-      if (!isCorrect) {
-        sounds.wrongAns()
-        dispatch({ type: ActionType.ANSWER_WRONG })
-        return
-      }
-
-      if (isLastQuestion) {
-        sounds.celebrateSound()
-        dispatch({ type: ActionType.COMPLETE_GAME })
-        return
-      }
-
-      sounds.correctAns()
-      dispatch({
-        type: ActionType.NEXT_QUESTION,
-        payload: { totalQuestions },
-      })
+      continueAfterReveal()
     }, REVEAL_DURATION_MS)
 
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [status, dispatch, question, selectedAnswerId, questionIndex, totalQuestions])
+  }, [status, learningMode, continueAfterReveal])
+
+  return { continueAfterReveal }
 }

@@ -98,8 +98,13 @@ function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [activeQuestions, setActiveQuestions] = useState([])
   const [activeCategory, setActiveCategory] = useState(null)
+  const [activeDifficulty, setActiveDifficulty] = useState(null)
+  const [learningMode, setLearningMode] = useState(false)
+  const [timedOutQuestion, setTimedOutQuestion] = useState(null)
   const gameRunIdRef = useRef(null)
   const savedRunIdRef = useRef(null)
+  const continueHandledRef = useRef(false)
+  const activeQuestionRef = useRef(null)
   const { muted, toggleMuted } = useSoundPreference()
   const currentQuestion = getCurrentQuestion(state, activeQuestions)
   const resultPrize = getResultPrize(state, prizes)
@@ -110,6 +115,8 @@ function App() {
   const statusAnnouncement = getGameStatusAnnouncement(state, currentQuestion)
   const totalQuestions = activeQuestions.length
   const categoryName = activeCategory?.name
+  const difficultyName = activeDifficulty?.name
+  const quizContextLabel = [categoryName, difficultyName].filter(Boolean).join(' · ')
 
   useEffect(() => {
     if (state.status === GameStatus.IDLE && showHistory) {
@@ -119,6 +126,24 @@ function App() {
 
     document.title = getDocumentTitle(state.status, state.questionIndex)
   }, [state.status, state.questionIndex, showHistory])
+
+  useEffect(() => {
+    if (state.status === GameStatus.PLAYING) {
+      activeQuestionRef.current = activeQuestions[state.questionIndex] ?? null
+    }
+  }, [state.status, state.questionIndex, activeQuestions])
+
+  useEffect(() => {
+    if (state.status === GameStatus.TIMEOUT) {
+      setTimedOutQuestion(activeQuestionRef.current)
+    }
+  }, [state.status])
+
+  useEffect(() => {
+    if (state.status !== GameStatus.REVEALING) {
+      continueHandledRef.current = false
+    }
+  }, [state.status, state.questionIndex])
 
   useEffect(() => {
     if (!isGameOver(state.status)) {
@@ -145,10 +170,24 @@ function App() {
             categoryName: activeCategory.name,
           }
         : {}),
+      ...(activeDifficulty
+        ? {
+            difficultyId: activeDifficulty.id,
+            difficultyName: activeDifficulty.name,
+          }
+        : {}),
     })
-  }, [state.status, state.questionIndex, state.playerName, resultPrize, totalQuestions, activeCategory])
+  }, [
+    state.status,
+    state.questionIndex,
+    state.playerName,
+    resultPrize,
+    totalQuestions,
+    activeCategory,
+    activeDifficulty,
+  ])
 
-  useGameRuntime({
+  const { continueAfterReveal } = useGameRuntime({
     status: state.status,
     question: currentQuestion,
     questionIndex: state.questionIndex,
@@ -156,17 +195,21 @@ function App() {
     totalQuestions,
     dispatch,
     muted,
+    learningMode,
   })
 
-  const handleStartGame = (playerName, categoryId) => {
-    const playable = getPlayableCategory(categoryId)
+  const handleStartGame = (playerName, categoryId, difficultyId, nextLearningMode = false) => {
+    const playable = getPlayableCategory(categoryId, difficultyId)
     if (!playable.ok) {
       return
     }
 
     setShowHistory(false)
+    setTimedOutQuestion(null)
+    setLearningMode(Boolean(nextLearningMode))
     setActiveQuestions(playable.questions)
     setActiveCategory(playable.category)
+    setActiveDifficulty(playable.difficulty)
     gameRunIdRef.current = createHistoryId()
     savedRunIdRef.current = null
     dispatch({
@@ -182,10 +225,22 @@ function App() {
     })
   }
 
+  const handleContinueAfterReveal = () => {
+    if (state.status !== GameStatus.REVEALING || continueHandledRef.current) {
+      return
+    }
+
+    continueHandledRef.current = true
+    continueAfterReveal()
+  }
+
   const handleRestartGame = () => {
     setShowHistory(false)
+    setTimedOutQuestion(null)
+    setLearningMode(false)
     setActiveQuestions([])
     setActiveCategory(null)
+    setActiveDifficulty(null)
     dispatch({ type: ActionType.RESTART_GAME })
   }
 
@@ -223,7 +278,9 @@ function App() {
                 playerName={state.playerName}
                 questionIndex={state.questionIndex}
                 totalQuestions={totalQuestions}
-                categoryName={categoryName}
+                categoryName={quizContextLabel || categoryName}
+                learningMode={learningMode}
+                timedOutQuestion={timedOutQuestion}
                 onRestart={handleRestartGame}
               />
             ) : (
@@ -261,7 +318,9 @@ function App() {
                       status={state.status}
                       selectedAnswerId={state.selectedAnswerId}
                       onSelectAnswer={handleSelectAnswer}
-                      categoryName={categoryName}
+                      categoryName={quizContextLabel || categoryName}
+                      learningMode={learningMode}
+                      onContinue={handleContinueAfterReveal}
                     />
                   )}
                 </div>

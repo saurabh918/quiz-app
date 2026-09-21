@@ -431,4 +431,18 @@ describe('useGameRuntime', () => {
 
     expect(soundMocks.start.play).not.toHaveBeenCalled()
   })
+
+  it('does not auto-advance after reveal in Learning Mode', () => {
+    const { dispatch } = renderRuntime({
+      status: GameStatus.REVEALING,
+      selectedAnswerId: '1-a',
+      learningMode: true,
+    })
+
+    act(() => {
+      vi.advanceTimersByTime(REVEAL_DURATION_MS)
+    })
+
+    expect(dispatch).not.toHaveBeenCalled()
+  })
 })

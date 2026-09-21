@@ -7,6 +7,16 @@ import { questions } from '../data/questions'
 
 const firstQuestion = questions[0]
 const thirdQuestion = questions[2]
+const questionWithoutExplanation = {
+  id: 'test-no-explanation',
+  question: 'Which option is correct?',
+  answers: [
+    { id: 'test-a', text: 'Option A', correct: true },
+    { id: 'test-b', text: 'Option B', correct: false },
+    { id: 'test-c', text: 'Option C', correct: false },
+    { id: 'test-d', text: 'Option D', correct: false },
+  ],
+}
 
 function renderQuiz({
   question = firstQuestion,
@@ -14,6 +24,8 @@ function renderQuiz({
   selectedAnswerId = null,
   onSelectAnswer = vi.fn(),
   categoryName,
+  learningMode = false,
+  onContinue = vi.fn(),
 } = {}) {
   const view = render(
     <Quiz
@@ -22,10 +34,12 @@ function renderQuiz({
       selectedAnswerId={selectedAnswerId}
       onSelectAnswer={onSelectAnswer}
       categoryName={categoryName}
+      learningMode={learningMode}
+      onContinue={onContinue}
     />,
   )
 
-  return { ...view, onSelectAnswer }
+  return { ...view, onSelectAnswer, onContinue }
 }
 
 function getAnswerButtons() {
@@ -242,5 +256,60 @@ describe('Quiz accessibility', () => {
     const selected = screen.getByRole('button', { name: 'Russia' })
     expect(selected).toBeDisabled()
     expect(selected).toHaveAccessibleName('Russia')
+  })
+})
+
+describe('Quiz learning mode', () => {
+  it('shows an explanation and Continue while revealing in Learning Mode', () => {
+    renderQuiz({
+      question: thirdQuestion,
+      status: GameStatus.REVEALING,
+      selectedAnswerId: '3-c',
+      learningMode: true,
+    })
+
+    expect(screen.getByRole('heading', { name: 'Explanation' })).toBeInTheDocument()
+    expect(screen.getByText(/Canberra was chosen as the capital in 1908/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
+  })
+
+  it('does not show explanation UI in Normal Mode while revealing', () => {
+    renderQuiz({
+      question: thirdQuestion,
+      status: GameStatus.REVEALING,
+      selectedAnswerId: '3-c',
+    })
+
+    expect(screen.queryByRole('heading', { name: 'Explanation' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Continue' })).not.toBeInTheDocument()
+  })
+
+  it('shows Continue without an empty explanation panel when none exists', () => {
+    renderQuiz({
+      question: questionWithoutExplanation,
+      status: GameStatus.REVEALING,
+      selectedAnswerId: 'test-a',
+      learningMode: true,
+    })
+
+    expect(screen.queryByRole('heading', { name: 'Explanation' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Continue' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
+  })
+
+  it('calls onContinue when Continue is clicked', async () => {
+    const user = userEvent.setup()
+    const onContinue = vi.fn()
+
+    renderQuiz({
+      status: GameStatus.REVEALING,
+      selectedAnswerId: '1-a',
+      learningMode: true,
+      onContinue,
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    expect(onContinue).toHaveBeenCalledTimes(1)
   })
 })

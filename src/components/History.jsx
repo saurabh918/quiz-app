@@ -4,7 +4,7 @@ import {
   clearGameHistory,
   formatHistoryDate,
   getGameHistory,
-  getHistoryCategoryLabel,
+  getHistoryContextLabel,
   getHistoryProgressLabel,
   getHistoryResultLabel,
   getHistorySummary,
@@ -71,7 +71,7 @@ function History({ onBack }) {
                   <article className={`historyItem is-${record.status}`}>
                     <p className="historyItemKicker">{resultLabel}</p>
                     <h2 className="historyItemName">{record.playerName}</h2>
-                    <p className="historyItemCategory">{getHistoryCategoryLabel(record)}</p>
+                    <p className="historyItemCategory">{getHistoryContextLabel(record)}</p>
                     <p className="historyItemPrize">{record.securedPrize}</p>
                     <p className="historyItemProgress">{getHistoryProgressLabel(record)}</p>
                     <p className="historyItemDate">

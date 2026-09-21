@@ -1,4 +1,5 @@
 import { formatPrizeAmount, getPrizeNumericValue, ZERO_PRIZE_DISPLAY } from '../data/formatPrize'
+import { FALLBACK_DIFFICULTY_NAME } from '../data/difficulties'
 import { FALLBACK_CATEGORY_NAME } from '../data/questionBank'
 import { GameStatus } from '../game/gameReducer'
 
@@ -82,6 +83,12 @@ function normalizeRecord(record) {
     ...(typeof record.categoryName === 'string' && record.categoryName.trim()
       ? { categoryName: record.categoryName.trim() }
       : {}),
+    ...(typeof record.difficultyId === 'string' && record.difficultyId.trim()
+      ? { difficultyId: record.difficultyId.trim() }
+      : {}),
+    ...(typeof record.difficultyName === 'string' && record.difficultyName.trim()
+      ? { difficultyName: record.difficultyName.trim() }
+      : {}),
   }
 }
 
@@ -143,6 +150,8 @@ export function saveGameHistory(record) {
         : new Date().toISOString(),
     categoryId: record?.categoryId,
     categoryName: record?.categoryName,
+    difficultyId: record?.difficultyId,
+    difficultyName: record?.difficultyName,
   })
 
   if (!nextRecord) {
@@ -207,6 +216,18 @@ export function getHistoryCategoryLabel(record) {
   }
 
   return FALLBACK_CATEGORY_NAME
+}
+
+export function getHistoryDifficultyLabel(record) {
+  if (typeof record?.difficultyName === 'string' && record.difficultyName.trim()) {
+    return record.difficultyName.trim()
+  }
+
+  return FALLBACK_DIFFICULTY_NAME
+}
+
+export function getHistoryContextLabel(record) {
+  return [getHistoryCategoryLabel(record), getHistoryDifficultyLabel(record)].join(' · ')
 }
 
 export function getHistoryProgressLabel(record) {

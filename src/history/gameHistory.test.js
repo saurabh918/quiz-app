@@ -6,6 +6,8 @@ import {
   clearGameHistory,
   getGameHistory,
   getHistoryCategoryLabel,
+  getHistoryContextLabel,
+  getHistoryDifficultyLabel,
   getHistorySummary,
   saveGameHistory,
 } from './gameHistory'
@@ -110,12 +112,14 @@ describe('gameHistory', () => {
     })
   })
 
-  it('keeps older records without category fields and labels them safely', () => {
+  it('keeps older records without category or difficulty fields and labels them safely', () => {
     const legacyRecord = makeRecord()
     window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify([legacyRecord]))
 
     expect(getGameHistory()).toEqual([legacyRecord])
     expect(getHistoryCategoryLabel(legacyRecord)).toBe('General Knowledge')
+    expect(getHistoryDifficultyLabel(legacyRecord)).toBe('Medium')
+    expect(getHistoryContextLabel(legacyRecord)).toBe('General Knowledge · Medium')
     expect(
       getHistoryCategoryLabel(
         makeRecord({
@@ -124,19 +128,31 @@ describe('gameHistory', () => {
         }),
       ),
     ).toBe('Science')
+    expect(
+      getHistoryContextLabel(
+        makeRecord({
+          categoryId: 'science',
+          categoryName: 'Science',
+        }),
+      ),
+    ).toBe('Science · Medium')
   })
 
-  it('stores category fields on new records', () => {
+  it('stores category and difficulty fields on new records', () => {
     saveGameHistory(
       makeRecord({
         categoryId: 'science',
         categoryName: 'Science',
+        difficultyId: 'medium',
+        difficultyName: 'Medium',
       }),
     )
 
     expect(getGameHistory()[0]).toMatchObject({
       categoryId: 'science',
       categoryName: 'Science',
+      difficultyId: 'medium',
+      difficultyName: 'Medium',
     })
   })
 })
