@@ -24,6 +24,10 @@
   --focus-ring: 2px solid var(--color-gold);
   --focus-offset: 3px;
   --font-family: "Roboto", sans-serif;
+  --idle-bg-image: url("../src/assets/kbc-bg.jpg");
+  --idle-bg-overlay:
+    radial-gradient(ellipse 90% 70% at 50% 18%, rgba(16, 2, 48, 0.35) 0%, transparent 62%),
+    linear-gradient(180deg, rgba(2, 2, 32, 0.82) 0%, rgba(2, 2, 32, 0.94) 55%, rgba(2, 2, 32, 0.98) 100%);
 }
 
 html,
@@ -50,12 +54,44 @@ body,
 }
 
 .app.isIdle {
+  display: grid;
   justify-content: center;
-  align-items: center;
-  padding: 72px 16px 32px;
-  background:
-    linear-gradient(rgba(2, 2, 32, 0.72), var(--color-bg)),
-    url("../src/assets/kbc-bg.jpg") center / cover no-repeat;
+  align-content: center;
+  grid-template-columns: minmax(0, min(960px, calc(100% - 32px)));
+  gap: 10px;
+  padding: 12px 16px 16px;
+  min-height: 100dvh;
+  background-color: var(--color-bg);
+  background-image: var(--idle-bg-overlay), var(--idle-bg-image);
+  background-position: center center, center center;
+  background-size: auto, cover;
+  background-repeat: no-repeat, no-repeat;
+}
+
+.app.isIdle .soundToggle,
+.app.isIdle > .start,
+.app.isIdle > .history {
+  grid-column: 1;
+  width: 100%;
+}
+
+.app.isIdle .soundToggle {
+  position: static;
+  justify-self: start;
+}
+
+.app.isIdle::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 42%, rgba(0, 0, 205, 0.1) 0%, transparent 58%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app.isIdle > * {
+  position: relative;
+  z-index: 1;
 }
 
 .app.isOver {
@@ -1089,12 +1125,151 @@ body,
   }
 }
 
+@media only screen and (min-width: 769px) {
+  .app.isIdle {
+    padding: 14px 32px 16px;
+    grid-template-columns: minmax(0, min(960px, calc(100% - 64px)));
+  }
+
+  .start {
+    width: 100%;
+    padding: 24px 28px 20px;
+    box-shadow: 0 20px 56px rgba(0, 0, 0, 0.42);
+  }
+
+  .history {
+    width: 100%;
+    box-shadow: 0 20px 56px rgba(0, 0, 0, 0.42);
+  }
+}
+
+@media only screen and (min-width: 1024px) {
+  .app.isIdle {
+    padding: 12px 32px 14px;
+  }
+
+  .start {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "header header header"
+      "rules category category"
+      "rules difficulty mode"
+      "rules fields fields";
+    column-gap: 24px;
+    row-gap: 10px;
+    align-items: start;
+    padding: 18px 28px 16px;
+    gap: 10px;
+  }
+
+  .startHeader {
+    grid-area: header;
+    gap: 4px;
+  }
+
+  .startRules {
+    grid-area: rules;
+    align-self: start;
+    padding: 10px 12px;
+  }
+
+  .startRulesHeading {
+    margin-bottom: 6px;
+  }
+
+  .startRulesList {
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+
+  .startRulesList li + li {
+    margin-top: 2px;
+  }
+
+  .startTitle {
+    font-size: 1.75rem;
+  }
+
+  .startSubtitle {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  .start > .categoryFieldset:nth-of-type(1) {
+    grid-area: category;
+  }
+
+  .start > .categoryFieldset:nth-of-type(2) {
+    grid-area: difficulty;
+  }
+
+  .start > .categoryFieldset:nth-of-type(3) {
+    grid-area: mode;
+  }
+
+  .start > .startFields {
+    grid-area: fields;
+  }
+
+  .categoryFieldset .startLabel {
+    margin-bottom: 4px;
+  }
+
+  .categoryOptions {
+    gap: 6px;
+  }
+
+  .categoryOption {
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+
+  .categoryOptionDescription {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .startBtn {
+    min-height: 44px;
+    margin-top: 0;
+  }
+
+  .history {
+    width: 100%;
+    padding: 24px 28px 20px;
+  }
+}
+
+@media only screen and (min-width: 1024px) and (max-height: 820px) {
+  .app.isIdle {
+    align-content: start;
+    padding-top: 10px;
+  }
+
+  .start {
+    padding: 14px 24px 12px;
+    row-gap: 8px;
+  }
+
+  .startTitle {
+    font-size: 1.6rem;
+  }
+}
+
 @media only screen and (max-width: 768px) {
   .app {
     flex-direction: column;
     height: auto;
     min-height: 100vh;
     min-height: 100dvh;
+  }
+
+  .app.isIdle {
+    align-content: start;
+    padding: 12px 16px 20px;
+    gap: 12px;
   }
 
   .main {
