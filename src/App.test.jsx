@@ -37,12 +37,24 @@ function renderApp() {
   return render(<App />)
 }
 
-async function startGame(user, playerName = 'Ada', { learningMode = false } = {}) {
+async function startGame(user, playerName = 'Ada', { learningMode = false, category } = {}) {
+  await user.click(screen.getByRole('button', { name: 'Continue' }))
+  await user.type(screen.getByLabelText('Name'), playerName)
+  await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+  if (category) {
+    await user.click(screen.getByRole('radio', { name: new RegExp(category, 'i') }))
+  }
+
+  await user.click(screen.getByRole('button', { name: 'Continue' }))
+  await user.click(screen.getByRole('button', { name: 'Continue' }))
+
   if (learningMode) {
     await user.click(screen.getByRole('radio', { name: /Learning Mode/i }))
   }
-  await user.type(screen.getByLabelText('Name'), playerName)
-  await user.click(screen.getByRole('button', { name: 'Start' }))
+
+  await user.click(screen.getByRole('button', { name: 'Continue' }))
+  await user.click(screen.getByRole('button', { name: 'Start Quiz' }))
 }
 
 function advanceMs(ms) {
@@ -87,8 +99,9 @@ describe('App integration', () => {
     it('shows the start screen and not the quiz or result screens', () => {
       renderApp()
 
-      expect(screen.getByLabelText('Name')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Start' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled()
+      expect(screen.getByText('How to play')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
       expect(screen.queryByRole('timer')).not.toBeInTheDocument()
       expect(screen.queryByText(questions[0].question)).not.toBeInTheDocument()
       expect(screen.queryByRole('button', { name: questions[0].answers[0].text })).not.toBeInTheDocument()
@@ -219,8 +232,8 @@ describe('App integration', () => {
 
       await user.click(screen.getByRole('button', { name: 'Play again' }))
 
-      expect(screen.getByRole('button', { name: 'Start' })).toBeInTheDocument()
-      expect(screen.getByLabelText('Name')).toHaveValue('')
+      expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
+      expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: 'Player: Ada' })).not.toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: 'Incorrect answer' })).not.toBeInTheDocument()
       expect(screen.queryByText(currentQuestion.question)).not.toBeInTheDocument()
@@ -350,8 +363,7 @@ describe('App integration', () => {
       const user = setupUser()
       renderApp()
 
-      await user.click(screen.getByRole('radio', { name: /Science/i }))
-      await startGame(user, 'Ada')
+      await startGame(user, 'Ada', { category: 'Science' })
 
       expect(screen.getByText('Science · Medium')).toBeInTheDocument()
       const scienceQuestion = findDisplayedQuestion(scienceQuestions)
