@@ -72,29 +72,31 @@ function Quiz({
 
   return (
     <div className="quiz">
-      {categoryName ? <p className="quizCategory">{categoryName}</p> : null}
-      <h1 className="question">{question.question}</h1>
-      <div className="answers">
-        {question.answers.map((answer) => {
-          const feedback = getAnswerFeedback(answer, status, selectedAnswerId)
+      <div className="quizStage" key={question.id}>
+        {categoryName ? <p className="quizCategory">{categoryName}</p> : null}
+        <h1 className="question">{question.question}</h1>
+        <div className="answers">
+          {question.answers.map((answer) => {
+            const feedback = getAnswerFeedback(answer, status, selectedAnswerId)
 
-          return (
-            <button
-              key={answer.id}
-              type="button"
-              disabled={!isSelectionEnabled}
-              className={getAnswerClassName(answer, status, selectedAnswerId)}
-              onClick={() => onSelectAnswer(answer.id)}
-            >
-              <span className="answerText">{answer.text}</span>
-              {feedback ? (
-                <span className="answerFeedback" aria-hidden="true">
-                  {feedback}
-                </span>
-              ) : null}
-            </button>
-          )
-        })}
+            return (
+              <button
+                key={answer.id}
+                type="button"
+                disabled={!isSelectionEnabled}
+                className={getAnswerClassName(answer, status, selectedAnswerId)}
+                onClick={() => onSelectAnswer(answer.id)}
+              >
+                <span className="answerText">{answer.text}</span>
+                {feedback ? (
+                  <span className="answerFeedback" aria-hidden="true">
+                    {feedback}
+                  </span>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
       </div>
       {showLearningContinue ? (
         <section className="quizLearningPanel" aria-labelledby={EXPLANATION_HEADING_ID}>

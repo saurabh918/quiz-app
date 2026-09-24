@@ -29,6 +29,7 @@
     radial-gradient(ellipse 90% 70% at 50% 18%, rgba(16, 2, 48, 0.35) 0%, transparent 62%),
     radial-gradient(ellipse 70% 55% at 80% 80%, rgba(0, 0, 205, 0.12) 0%, transparent 60%),
     linear-gradient(180deg, rgba(2, 2, 32, 0.82) 0%, rgba(2, 2, 32, 0.94) 55%, rgba(2, 2, 32, 0.98) 100%);
+  --ease-show: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 html,
@@ -69,16 +70,10 @@ body,
   background-repeat: no-repeat, no-repeat;
 }
 
-.app.isIdle .soundToggle,
 .app.isIdle > .start,
 .app.isIdle > .history {
   grid-column: 1;
   width: 100%;
-}
-
-.app.isIdle .soundToggle {
-  position: static;
-  justify-self: start;
 }
 
 .app.isIdle::before {
@@ -103,7 +98,7 @@ body,
   z-index: 0;
 }
 
-.app.isIdle > * {
+.app.isIdle > *:not(.soundToggle) {
   position: relative;
   z-index: 1;
 }
@@ -121,25 +116,119 @@ body,
 }
 
 .soundToggle {
-  position: absolute;
+  position: fixed;
   top: 12px;
   left: 12px;
-  z-index: 20;
+  z-index: 30;
   width: 44px;
   height: 44px;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 2px solid #fff;
-  border-radius: var(--radius-small);
-  background: var(--color-panel);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  background: rgba(16, 2, 48, 0.92);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
   color: #fff;
   cursor: pointer;
 }
 
 .soundToggle.isMuted {
   background: #3a1020;
+}
+
+.quitGameBtn {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 30;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(16, 2, 48, 0.88);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.quitGameBtn:hover {
+  border-color: rgba(255, 255, 255, 0.75);
+  background: rgba(28, 8, 68, 0.95);
+}
+
+.quitDialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(2, 2, 32, 0.78);
+}
+
+.quitDialog {
+  width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 20px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, rgba(22, 4, 56, 0.98) 0%, rgba(8, 0, 24, 0.99) 100%);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+  color: #fff;
+}
+
+.quitDialogTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.quitDialogMessage {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--color-muted);
+}
+
+.quitDialogActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.quitDialogBtn {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #fff;
+  border-radius: var(--radius-small);
+  background: var(--control-bg);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quitDialogBtnSecondary {
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+.quitDialogBtnDanger {
+  border-color: var(--color-danger);
+  background: rgba(220, 20, 60, 0.18);
+  color: #ffb8c4;
 }
 
 .main {
@@ -282,6 +371,126 @@ body,
   align-items: center;
   padding: 8px 0 16px;
   min-width: 0;
+}
+
+.quizStage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 12px;
+  animation: quizStageIn 0.4s var(--ease-show) both;
+}
+
+.quizStage .quizCategory {
+  animation: quizMetaIn 0.34s var(--ease-show) 0.04s both;
+}
+
+.quizStage .question {
+  animation: quizQuestionIn 0.38s var(--ease-show) 0.08s both;
+}
+
+.quizStage .answers .answer {
+  animation: quizAnswerIn 0.36s var(--ease-show) both;
+}
+
+.quizStage .answers .answer:nth-child(1) {
+  animation-delay: 0.12s;
+}
+
+.quizStage .answers .answer:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.quizStage .answers .answer:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.quizStage .answers .answer:nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+.quizStage .answers .answer:nth-child(odd) {
+  animation-name: quizAnswerInLeft;
+}
+
+.quizStage .answers .answer:nth-child(even) {
+  animation-name: quizAnswerInRight;
+}
+
+@keyframes quizStageIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes quizMetaIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes quizQuestionIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes quizAnswerIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes quizAnswerInLeft {
+  from {
+    opacity: 0;
+    transform: translate(-10px, 12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes quizAnswerInRight {
+  from {
+    opacity: 0;
+    transform: translate(10px, 12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
 }
 
 .answers {
@@ -582,6 +791,12 @@ body,
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-gold);
+  animation: startProgressIn 0.34s var(--ease-show) 0.03s both;
+}
+
+.startProgressTrack,
+.startProgressDots {
+  animation: startProgressIn 0.34s var(--ease-show) 0.06s both;
 }
 
 .startProgressTrack {
@@ -628,34 +843,150 @@ body,
 }
 
 .startStepPanel.isForward {
-  animation: startStepInForward 0.28s ease-out;
+  animation: startStepInForward 0.4s var(--ease-show) both;
 }
 
 .startStepPanel.isBack {
-  animation: startStepInBack 0.28s ease-out;
+  animation: startStepInBack 0.36s var(--ease-show) both;
+}
+
+.startStepPanel.isForward .startStepDescription,
+.startStepPanel.isBack .startStepDescription {
+  animation: startPieceIn 0.38s var(--ease-show) 0.1s both;
+}
+
+.startStepPanel.isForward .startRulesList,
+.startStepPanel.isBack .startRulesList,
+.startStepPanel.isForward .startLabel,
+.startStepPanel.isBack .startLabel,
+.startStepPanel.isForward .startBox,
+.startStepPanel.isBack .startBox,
+.startStepPanel.isForward .startSummaryList,
+.startStepPanel.isBack .startSummaryList,
+.startStepPanel.isForward .startError,
+.startStepPanel.isBack .startError {
+  animation: startPieceIn 0.38s var(--ease-show) 0.12s both;
+}
+
+.startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(odd),
+.startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(odd) {
+  animation: startPieceInLeft 0.4s var(--ease-show) both;
+}
+
+.startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(even),
+.startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(even) {
+  animation: startPieceInRight 0.4s var(--ease-show) both;
+}
+
+.startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(n + 3),
+.startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(n + 3) {
+  animation-name: startPieceIn;
+}
+
+.startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(1),
+.startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(1) {
+  animation-delay: 0.14s;
+}
+
+.startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(2),
+.startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(3),
+.startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(3) {
+  animation-delay: 0.26s;
+}
+
+.startNav.isForward {
+  animation: startNavIn 0.36s var(--ease-show) 0.14s both;
+}
+
+.startNav.isBack {
+  animation: startNavIn 0.32s var(--ease-show) 0.1s both;
+}
+
+@keyframes startProgressIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes startStepInForward {
   from {
     opacity: 0;
-    transform: translateX(14px);
+    transform: translate3d(14px, 18px, 0) scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
 @keyframes startStepInBack {
   from {
     opacity: 0;
-    transform: translateX(-14px);
+    transform: translate3d(-14px, 16px, 0) scale(0.98);
   }
 
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes startPieceIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes startPieceInLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-12px, 14px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes startPieceInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(12px, 14px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes startNavIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -743,13 +1074,6 @@ body,
   font-size: 0.95rem;
   line-height: 1.4;
   overflow-wrap: anywhere;
-}
-
-.categoryFieldset .startStepHeading {
-  float: left;
-  width: 100%;
-  padding: 0;
-  margin-bottom: 4px;
 }
 
 .categoryFieldset {
@@ -892,6 +1216,35 @@ body,
   border-radius: var(--radius-small);
   background: rgba(14, 1, 32, 0.55);
   overflow-wrap: anywhere;
+  animation: quizLearningIn 0.36s var(--ease-show) both;
+}
+
+.quizLearningPanel .quizContinueBtn {
+  animation: quizContinueIn 0.32s var(--ease-show) 0.06s both;
+}
+
+@keyframes quizLearningIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes quizContinueIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .quizExplanationHeading,
@@ -1295,6 +1648,8 @@ body,
 }
 
 .soundToggle:focus-visible,
+.quitGameBtn:focus-visible,
+.quitDialogBtn:focus-visible,
 .startBox:focus-visible,
 .startBtn:focus-visible,
 .quizContinueBtn:focus-visible,
@@ -1326,7 +1681,7 @@ body,
 
 @media only screen and (min-width: 769px) {
   .app.isIdle {
-    padding: 14px 32px 16px;
+    padding: 56px 32px 16px;
     grid-template-columns: minmax(0, min(960px, calc(100% - 64px)));
   }
 
@@ -1398,7 +1753,7 @@ body,
 
   .app.isIdle {
     align-content: start;
-    padding: 12px 16px 20px;
+    padding: 56px 16px 20px;
     gap: 12px;
   }
 
@@ -1442,6 +1797,18 @@ body,
     justify-content: flex-start;
     gap: 16px;
     padding: 8px 0 20px;
+  }
+
+  .quizStage .answers .answer:nth-child(odd),
+  .quizStage .answers .answer:nth-child(even) {
+    animation-name: quizAnswerIn;
+  }
+
+  .startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(odd),
+  .startStepPanel.isForward .categoryOptions > .categoryOption:nth-child(even),
+  .startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(odd),
+  .startStepPanel.isBack .categoryOptions > .categoryOption:nth-child(even) {
+    animation-name: startPieceIn;
   }
 
   .answers {
@@ -1528,6 +1895,31 @@ body,
   .timer.isUrgent,
   .timer.isCritical,
   .startStepPanel,
+  .startProgress,
+  .startNav,
+  .startStepPanel.isForward .startStepDescription,
+  .startStepPanel.isForward .startRulesList,
+  .startStepPanel.isForward .startLabel,
+  .startStepPanel.isForward .startBox,
+  .startStepPanel.isForward .startSummaryList,
+  .startStepPanel.isForward .startError,
+  .startStepPanel.isForward .categoryOptions > .categoryOption,
+  .startStepPanel.isBack .startStepDescription,
+  .startStepPanel.isBack .startRulesList,
+  .startStepPanel.isBack .startLabel,
+  .startStepPanel.isBack .startBox,
+  .startStepPanel.isBack .startSummaryList,
+  .startStepPanel.isBack .startError,
+  .startStepPanel.isBack .categoryOptions > .categoryOption,
+  .startProgressText,
+  .startProgressTrack,
+  .startProgressDots,
+  .quizStage,
+  .quizStage .quizCategory,
+  .quizStage .question,
+  .quizStage .answers .answer,
+  .quizLearningPanel,
+  .quizLearningPanel .quizContinueBtn,
   .startProgressFill {
     animation: none;
     transition: none;

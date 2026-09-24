@@ -21,7 +21,6 @@ const PLAYER_NAME_ERROR_ID = 'player-name-error'
 const CATEGORY_ERROR_ID = 'category-error'
 const DIFFICULTY_ERROR_ID = 'difficulty-error'
 const START_TITLE_ID = 'start-title'
-const START_RULES_ID = 'start-rules-heading'
 const START_PROGRESS_ID = 'start-progress-label'
 const CATEGORY_LEGEND_ID = 'category-legend'
 const DIFFICULTY_LEGEND_ID = 'difficulty-legend'
@@ -166,7 +165,7 @@ function Start({ onStart, onOpenHistory }) {
         <p className="startSubtitle">Climb fifteen timed questions toward the top prize.</p>
       </header>
 
-      <div className="startProgress" aria-labelledby={START_PROGRESS_ID}>
+      <div key={`progress-${step}`} className="startProgress" aria-labelledby={START_PROGRESS_ID}>
         <p id={START_PROGRESS_ID} className="startProgressText">
           Step {step} of {TOTAL_STEPS} — {STEP_LABELS[step - 1]}
         </p>
@@ -198,9 +197,9 @@ function Start({ onStart, onOpenHistory }) {
 
       <div key={step} className={stepPanelClassName}>
         {step === 1 ? (
-          <section className="startRules" aria-labelledby={START_RULES_ID}>
-            <h2 id={START_RULES_ID} ref={stepHeadingRef} className="startStepHeading" tabIndex={-1}>
-              How to play
+          <section className="startRules" aria-labelledby={START_PROGRESS_ID}>
+            <h2 ref={stepHeadingRef} className="visuallyHidden" tabIndex={-1}>
+              {STEP_LABELS[0]}
             </h2>
             <ul className="startRulesList">
               <li>{MIN_QUIZ_QUESTIONS} questions</li>
@@ -213,8 +212,8 @@ function Start({ onStart, onOpenHistory }) {
 
         {step === 2 ? (
           <div className="startFields">
-            <h2 ref={stepHeadingRef} className="startStepHeading" tabIndex={-1}>
-              Enter Your Name
+            <h2 ref={stepHeadingRef} className="visuallyHidden" tabIndex={-1}>
+              {STEP_LABELS[1]}
             </h2>
             <p className="startStepDescription">This name appears on your prize ladder run.</p>
             <label className="startLabel" htmlFor={PLAYER_NAME_ID}>
@@ -246,8 +245,8 @@ function Start({ onStart, onOpenHistory }) {
             className="categoryFieldset"
             aria-describedby={categoryError ? CATEGORY_ERROR_ID : undefined}
           >
-            <legend id={CATEGORY_LEGEND_ID} ref={stepHeadingRef} className="startStepHeading" tabIndex={-1}>
-              Choose Your Category
+            <legend id={CATEGORY_LEGEND_ID} ref={stepHeadingRef} className="visuallyHidden" tabIndex={-1}>
+              {STEP_LABELS[2]}
             </legend>
             <p className="startStepDescription">Pick the question set for this run.</p>
             <div className="categoryOptions">
@@ -292,8 +291,8 @@ function Start({ onStart, onOpenHistory }) {
             className="categoryFieldset"
             aria-describedby={difficultyError ? DIFFICULTY_ERROR_ID : undefined}
           >
-            <legend id={DIFFICULTY_LEGEND_ID} ref={stepHeadingRef} className="startStepHeading" tabIndex={-1}>
-              Choose Difficulty
+            <legend id={DIFFICULTY_LEGEND_ID} ref={stepHeadingRef} className="visuallyHidden" tabIndex={-1}>
+              {STEP_LABELS[3]}
             </legend>
             <p className="startStepDescription">Medium is available for every category today.</p>
             <div className="categoryOptions">
@@ -352,8 +351,8 @@ function Start({ onStart, onOpenHistory }) {
 
         {step === 5 ? (
           <fieldset className="categoryFieldset">
-            <legend id={LEARNING_MODE_LEGEND_ID} ref={stepHeadingRef} className="startStepHeading" tabIndex={-1}>
-              Choose Your Mode
+            <legend id={LEARNING_MODE_LEGEND_ID} ref={stepHeadingRef} className="visuallyHidden" tabIndex={-1}>
+              {STEP_LABELS[4]}
             </legend>
             <p className="startStepDescription">Normal is fast-paced. Learning Mode adds explanations.</p>
             <div className="categoryOptions">
@@ -402,9 +401,9 @@ function Start({ onStart, onOpenHistory }) {
         ) : null}
 
         {step === TOTAL_STEPS ? (
-          <section className="startSummary" aria-labelledby="start-review-heading">
-            <h2 id="start-review-heading" ref={stepHeadingRef} className="startStepHeading" tabIndex={-1}>
-              Review and Start
+          <section className="startSummary" aria-labelledby={START_PROGRESS_ID}>
+            <h2 ref={stepHeadingRef} className="visuallyHidden" tabIndex={-1}>
+              {STEP_LABELS[5]}
             </h2>
             <p className="startStepDescription">Confirm your setup before the first question.</p>
             <dl className="startSummaryList">
@@ -429,7 +428,7 @@ function Start({ onStart, onOpenHistory }) {
         ) : null}
       </div>
 
-      <div className="startNav">
+      <div key={`nav-${step}`} className={`startNav ${stepDirection === 'back' ? 'isBack' : 'isForward'}`}>
         {step > 1 ? (
           <button className="startBtn startBtnSecondary" type="button" onClick={handleBack}>
             Back

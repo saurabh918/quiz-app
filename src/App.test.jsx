@@ -100,7 +100,8 @@ describe('App integration', () => {
       renderApp()
 
       expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled()
-      expect(screen.getByText('How to play')).toBeInTheDocument()
+      expect(screen.getByText(/Step 1 of 6 — How to Play/i)).toBeInTheDocument()
+      expect(screen.getByText('15 questions')).toBeInTheDocument()
       expect(screen.queryByLabelText('Name')).not.toBeInTheDocument()
       expect(screen.queryByRole('timer')).not.toBeInTheDocument()
       expect(screen.queryByText(questions[0].question)).not.toBeInTheDocument()

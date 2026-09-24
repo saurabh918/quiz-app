@@ -105,6 +105,8 @@ function App() {
   const savedRunIdRef = useRef(null)
   const continueHandledRef = useRef(false)
   const activeQuestionRef = useRef(null)
+  const quitCancelRef = useRef(null)
+  const [quitConfirmOpen, setQuitConfirmOpen] = useState(false)
   const { muted, toggleMuted } = useSoundPreference()
   const currentQuestion = getCurrentQuestion(state, activeQuestions)
   const resultPrize = getResultPrize(state, prizes)
@@ -252,6 +254,38 @@ function App() {
     setShowHistory(false)
   }
 
+  const handleRequestQuit = () => {
+    setQuitConfirmOpen(true)
+  }
+
+  const handleCancelQuit = () => {
+    setQuitConfirmOpen(false)
+  }
+
+  const handleConfirmQuit = () => {
+    setQuitConfirmOpen(false)
+    handleRestartGame()
+  }
+
+  useEffect(() => {
+    if (!quitConfirmOpen) {
+      return undefined
+    }
+
+    quitCancelRef.current?.focus()
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setQuitConfirmOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [quitConfirmOpen])
+
   return (
     <div
       className={
@@ -262,6 +296,42 @@ function App() {
         {statusAnnouncement}
       </p>
       <SoundToggle muted={muted} onToggle={toggleMuted} />
+      {isActiveGame(state.status) ? (
+        <button type="button" className="quitGameBtn" onClick={handleRequestQuit}>
+          Quit
+        </button>
+      ) : null}
+      {quitConfirmOpen ? (
+        <div className="quitDialogBackdrop">
+          <div
+            className="quitDialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quit-dialog-title"
+            aria-describedby="quit-dialog-description"
+          >
+            <h2 id="quit-dialog-title" className="quitDialogTitle">
+              Quit game?
+            </h2>
+            <p id="quit-dialog-description" className="quitDialogMessage">
+              Are you sure you want to quit? Your current progress will be lost.
+            </p>
+            <div className="quitDialogActions">
+              <button
+                ref={quitCancelRef}
+                type="button"
+                className="quitDialogBtn quitDialogBtnSecondary"
+                onClick={handleCancelQuit}
+              >
+                Cancel
+              </button>
+              <button type="button" className="quitDialogBtn quitDialogBtnDanger" onClick={handleConfirmQuit}>
+                Quit Game
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {state.status === GameStatus.IDLE ? (
         showHistory ? (
           <History onBack={handleCloseHistory} />
