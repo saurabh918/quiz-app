@@ -29,6 +29,9 @@
     radial-gradient(ellipse 90% 70% at 50% 18%, rgba(16, 2, 48, 0.35) 0%, transparent 62%),
     radial-gradient(ellipse 70% 55% at 80% 80%, rgba(0, 0, 205, 0.12) 0%, transparent 60%),
     linear-gradient(180deg, rgba(2, 2, 32, 0.82) 0%, rgba(2, 2, 32, 0.94) 55%, rgba(2, 2, 32, 0.98) 100%);
+  --idle-bg-grid:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
   --ease-show: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -39,6 +42,39 @@ body,
   max-width: 100%;
   overflow-x: hidden;
   font-family: var(--font-family);
+}
+
+@keyframes auroraLightSweepA {
+  0%,
+  100% {
+    transform: translate3d(-34%, -28%, 0);
+  }
+
+  50% {
+    transform: translate3d(34%, 30%, 0);
+  }
+}
+
+@keyframes auroraLightSweepB {
+  0%,
+  100% {
+    transform: translate3d(32%, 26%, 0);
+  }
+
+  50% {
+    transform: translate3d(-34%, -30%, 0);
+  }
+}
+
+@keyframes auroraBeamSweepMain {
+  0%,
+  100% {
+    background-position: 0% 12%, 100% 88%;
+  }
+
+  50% {
+    background-position: 100% 88%, 0% 12%;
+  }
 }
 
 .app {
@@ -64,10 +100,10 @@ body,
   padding: 12px 16px 16px;
   min-height: 100dvh;
   background-color: var(--color-bg);
-  background-image: var(--idle-bg-overlay), var(--idle-bg-image);
-  background-position: center center, center center;
-  background-size: auto, cover;
-  background-repeat: no-repeat, no-repeat;
+  background-image: var(--idle-bg-overlay), var(--idle-bg-grid), var(--idle-bg-image);
+  background-position: center center, center center, center center;
+  background-size: auto, 44px 44px, cover;
+  background-repeat: no-repeat, repeat, no-repeat;
 }
 
 .app.isIdle > .start,
@@ -76,31 +112,61 @@ body,
   width: 100%;
 }
 
-.app.isIdle::before {
+.app.isIdle::before,
+.app:not(.isIdle)::before {
   content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 42%, rgba(0, 0, 205, 0.1) 0%, transparent 58%);
+  position: fixed;
+  inset: -35%;
   pointer-events: none;
   z-index: 0;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+  background: linear-gradient(
+    112deg,
+    transparent 0%,
+    transparent 36%,
+    rgba(40, 75, 255, 0.14) 43%,
+    rgba(70, 115, 255, 0.48) 50%,
+    rgba(50, 85, 235, 0.28) 57%,
+    transparent 64%,
+    transparent 100%
+  );
+  animation: auroraLightSweepA 18s ease-in-out infinite;
+  will-change: transform;
 }
 
-.app.isIdle::after {
+.app.isIdle::after,
+.app:not(.isIdle)::after {
   content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse 85% 70% at 50% 38%, #000 15%, transparent 72%);
+  position: fixed;
+  inset: -35%;
   pointer-events: none;
   z-index: 0;
+  opacity: 0.68;
+  mix-blend-mode: screen;
+  background: linear-gradient(
+    -62deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(95, 45, 185, 0.12) 44%,
+    rgba(130, 70, 220, 0.4) 50%,
+    rgba(255, 213, 74, 0.14) 52%,
+    rgba(85, 40, 165, 0.26) 58%,
+    transparent 65%,
+    transparent 100%
+  );
+  animation: auroraLightSweepB 24s ease-in-out infinite;
+  will-change: transform;
 }
 
 .app.isIdle > *:not(.soundToggle) {
   position: relative;
-  z-index: 1;
+  z-index: 2;
+}
+
+.app:not(.isIdle) > *:not(.soundToggle):not(.quitDialogBackdrop):not(.quitGameBtn) {
+  position: relative;
+  z-index: 2;
 }
 
 .app.isOver {
@@ -235,10 +301,57 @@ body,
   flex: 1 1 auto;
   min-width: 0;
   width: 75%;
-  background: linear-gradient(rgba(0, 0, 0, 0), var(--color-bg)), url("../src/assets/kbc-bg.jpg") center no-repeat;
-  background-size: cover;
+  position: relative;
+  z-index: 1;
+  background: transparent;
   display: flex;
   flex-direction: column;
+}
+
+.main::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(rgba(0, 0, 0, 0), var(--color-bg)), url("../src/assets/kbc-bg.jpg") center no-repeat;
+  background-size: cover;
+}
+
+.main::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.78;
+  mix-blend-mode: screen;
+  background-image:
+    linear-gradient(
+      112deg,
+      transparent 34%,
+      rgba(45, 85, 255, 0.22) 44%,
+      rgba(75, 120, 255, 0.5) 50%,
+      rgba(48, 78, 230, 0.3) 56%,
+      transparent 66%
+    ),
+    linear-gradient(
+      -62deg,
+      transparent 36%,
+      rgba(100, 48, 180, 0.2) 45%,
+      rgba(255, 213, 74, 0.12) 50%,
+      rgba(78, 42, 160, 0.28) 56%,
+      transparent 64%
+    );
+  background-size: 280% 280%;
+  background-repeat: no-repeat;
+  animation: auroraBeamSweepMain 20s ease-in-out infinite;
+  will-change: background-position;
+}
+
+.main > * {
+  position: relative;
+  z-index: 2;
 }
 
 .top {
@@ -1744,6 +1857,21 @@ body,
 }
 
 @media only screen and (max-width: 768px) {
+  .app.isIdle::before,
+  .app:not(.isIdle)::before {
+    opacity: 0.58;
+  }
+
+  .app.isIdle::after,
+  .app:not(.isIdle)::after {
+    opacity: 0.54;
+  }
+
+  .main::after {
+    opacity: 0.62;
+    background-size: 320% 320%;
+  }
+
   .app {
     flex-direction: column;
     height: auto;
@@ -1889,6 +2017,33 @@ body,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .app.isIdle::before,
+  .app.isIdle::after,
+  .app:not(.isIdle)::before,
+  .app:not(.isIdle)::after,
+  .main::after {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+
+  .app.isIdle::before,
+  .app:not(.isIdle)::before {
+    opacity: 0.55;
+    transform: translate3d(-12%, -8%, 0);
+  }
+
+  .app.isIdle::after,
+  .app:not(.isIdle)::after {
+    opacity: 0.5;
+    transform: translate3d(12%, 8%, 0);
+  }
+
+  .main::after {
+    opacity: 0.48;
+    background-position: 35% 40%, 65% 60%;
+  }
+
   .answer.right,
   .answer.wrong,
   .endButton,
